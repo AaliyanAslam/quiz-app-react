@@ -1,3 +1,4 @@
+import button from "daisyui/components/button";
 import React, { useState, useEffect, useRef } from "react";
 
 const App = () => {
@@ -7,9 +8,11 @@ const App = () => {
   const [index, setIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [showScore, setShowScore] = useState(false);
-  const [isDisabled , setIsDisabled] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
+  const [restart, setRestart] = useState(false);
   const input = useRef([]);
-const btnCol = useRef("")
+  const btnCol = useRef("");
+  const showScoreDiv = useRef();
   useEffect(() => {
     fetch("https://the-trivia-api.com/v2/questions")
       .then((res) => res.json())
@@ -43,32 +46,39 @@ const btnCol = useRef("")
 
   function nextQuestion() {
     const slelected = input.current.find((item) => item && item.checked);
-    console.log(slelected.value);
+    // console.log(slelected.value);
 
     if (slelected.value === questions[index].correctAnswer) {
-      console.log("correct");
+      // console.log("correct");
 
       setScore(score + 10);
     } else {
-      console.log("wrong");
+      // console.log("wrong");
       setScore(score);
     }
 
-    index < questions.length - 1
-      ? setIndex(index + 1)
-      : null;
+    index < questions.length - 1 ? setIndex(index + 1) : null;
     if (index === questions.length - 1) {
       setShowScore(true);
       setIsDisabled(true);
-      
-  btnCol.current.style.backgroundColor = "gray";
-  btnCol.current.style.color = "white";
-  btnCol.current.style.cursor = "not-allowed";
+      setRestart(true);
+      btnCol.current.style.backgroundColor = "gray";
+      btnCol.current.style.color = "white";
+      btnCol.current.style.cursor = "not-allowed";
     }
   }
 
-
-
+  useEffect(() => {
+    if (!showScoreDiv.current) return;
+    if (showScore && score >= 50) {
+      showScoreDiv.current.style.backgroundColor = "green";
+      showScoreDiv.current.style.color = "white";
+      showScoreDiv.current.style.cursor = "not-allowed";
+    } else if (showScore && score < 50) {
+      showScoreDiv.current.style.color = "black";
+      showScoreDiv.current.style.backgroundColor = "red";
+    }
+  }, [score]);
 
   return (
     <>
@@ -109,15 +119,33 @@ const btnCol = useRef("")
               );
             })}
             <button
-              onClick={nextQuestion} disabled={isDisabled} ref={btnCol}
+              onClick={nextQuestion}
+              disabled={isDisabled}
+              ref={btnCol}
               className="rounded w-full p-1 bg-gray-950 text-white cursor-pointer"
             >
               Next
             </button>
+
+            {showScore ? (
+              <div className="text-center p-3 border mt-3" ref={showScoreDiv}>
+                You Got {score}/100
+              </div>
+            ) : null}
+
+            {restart && (
+              <div
+                className="text-center p-3 border mt-3 cursor-pointer hover:bg-gray-300 duration-300 "
+                onClick={() => {
+                  window.location.reload();
+                }}
+              >
+                <button>Restart</button>
+              </div>
+            )}
           </div>
         )}
       </div>
-      {showScore ? <div>{score}</div> : null}
     </>
   );
 };
